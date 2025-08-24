@@ -33,7 +33,7 @@ jobs:
     # environment:
     #   name: dockerhub-publish 
     environment:
-      name: ${{ github.ref_name == 'main' && 'prod-approval' || 'dev' }} # Prod requires approval
+      name: ${{ github.ref_name == 'main' && 'dockerhub-publish' || 'dev' }} # Prod requires approval
     env:
       BRANCH_NAME: ${{ github.ref_name }}
       DOCKERHUB_USER: adinath16
