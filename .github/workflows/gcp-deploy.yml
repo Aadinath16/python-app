@@ -1,0 +1,67 @@
+# name: CI/CD with Semantic Release and GKE
+
+# on:
+#   push:
+#     branches:
+#       - "master"
+#       - "dev"
+#   pull_request:
+#     branches:
+#       - "dev"
+#       - "master"
+
+name: Python App CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - "dev"
+      - "master"
+  # workflow_dispatch:  # also allow manual trigger
+
+env:
+  IMAGE_NAME: adinath16/python-app
+
+jobs:
+  # 1. Build Docker Image
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Image
+        run: |
+          GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          docker build -t $IMAGE_NAME:$GIT_SHA .
+          docker tag $IMAGE_NAME:$GIT_SHA $IMAGE_NAME:latest
+          echo "IMAGE_TAG=$GIT_SHA" >> $GITHUB_ENV
+
+
+  # 2. Push Docker Image (requires approval)
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: dockerhub-publish   # 🔑 requires manual approval
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Docker Image
+        run: |
+          docker push $IMAGE_NAME:${{ env.IMAGE_TAG }}
+          docker push $IMAGE_NAME:latest
