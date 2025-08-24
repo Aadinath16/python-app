@@ -31,7 +31,9 @@ jobs:
     # needs: build
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref_name == 'main' && 'prod-approval' || 'dev' }} # Prod requires approval
+      name: dockerhub-publish 
+    # environment:
+    #   name: ${{ github.ref_name == 'main' && 'prod-approval' || 'dev' }} # Prod requires approval
     env:
       BRANCH_NAME: ${{ github.ref_name }}
       DOCKERHUB_USER: yourdockerhub
